@@ -59,8 +59,8 @@ internal static class TcpOwners
                     processNames[pid] = process;
                 }
                 rows.Add(new Connection((int)r.Pid, process,
-                    $"${Address(r.LocalAddress)}:${Port(r.LocalPort)}",
-                    $"${Address(r.RemoteAddress)}:${Port(r.RemotePort)}", StateName(r.State)));
+                    $"{Address(r.LocalAddress)}:{Port(r.LocalPort)}",
+                    $"{Address(r.RemoteAddress)}:{Port(r.RemotePort)}", StateName(r.State)));
             }
             return rows;
         }
@@ -70,7 +70,7 @@ internal static class TcpOwners
     {
         1 => "CLOSED", 2 => "LISTEN", 3 => "SYN_SENT", 4 => "SYN_RECEIVED",
         5 => "ESTABLISHED", 6 => "FIN_WAIT_1", 7 => "FIN_WAIT_2", 8 => "CLOSE_WAIT",
-        9 => "CLOSING", 10 => "LAST_ACK", 11 => "TIME_WAIT", 12 => "DELETE_TCB", _ => $"${n}"
+        9 => "CLOSING", 10 => "LAST_ACK", 11 => "TIME_WAIT", 12 => "DELETE_TCB", _ => $"{n}"
     };
 }
 
@@ -132,7 +132,7 @@ internal sealed class ConnectionsWindow : Form
         catch (Exception ex) { MessageBox.Show(this, ex.Message, "خطا در خواندن ارتباطات"); }
     }
     private static string ConnectionKey(TcpOwners.Connection r) =>
-        $"${r.Pid}|${r.Local}|${r.Remote}|${r.State}";
+        $"{r.Pid}|{r.Local}|{r.Remote}|{r.State}";
     private void Render()
     {
         var search = _filter.Text.Trim();
@@ -144,7 +144,7 @@ internal sealed class ConnectionsWindow : Form
             r.State.Contains(search, StringComparison.OrdinalIgnoreCase)).ToList();
         _grid.Rows.Clear();
         foreach (var r in filtered) _grid.Rows.Add(r.Process, r.Pid, r.Local, r.Remote, r.State);
-        _status.Text = $"${filtered.Count} اتصال | فقط TCP/IPv4 | اطلاعات لحظه‌ای؛ حجم هر برنامه ثبت نمی‌شود";
+        _status.Text = $"{filtered.Count} اتصال | فقط TCP/IPv4 | اطلاعات لحظه‌ای؛ حجم هر برنامه ثبت نمی‌شود";
     }
     private void ExportConnectionHistory() {
         using var dialog = new SaveFileDialog { Filter = "CSV|*.csv", FileName = "raha-connection-snapshots.csv" };
@@ -187,7 +187,7 @@ internal sealed class ConnectionHistory
                 return "\"" + value.Replace("\"", "\"\"") + "\"";
             }
             foreach (var c in changed)
-                writer.WriteLine($"${now},${c.Pid},${C(c.Process)},${C(c.Local)},${C(c.Remote)},${C(c.State)}");
+                writer.WriteLine($"{now},{c.Pid},{C(c.Process)},{C(c.Local)},{C(c.Remote)},{C(c.State)}");
         }
         foreach (var old in Directory.EnumerateFiles(_folder, "connections-*.csv"))
             if (File.GetLastWriteTimeUtc(old) < DateTime.UtcNow.AddDays(-7))
