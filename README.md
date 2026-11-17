@@ -1,22 +1,37 @@
-# Raha Net Monitor
+# Raha Net Monitor 0.6.0-rc1 — نامزد انتشار (سورس)
 
-Windows and Android network usage monitoring project.
+پروژهٔ مستقل Windows و Android با ذخیرهٔ محلی. این بسته **نسخهٔ پایدار تأییدشده نیست**: در محیط تولید بسته SDK کامپایل ویندوز و Android Gradle/SDK موجود نبود و روی دستگاه واقعی آزمایش نشده است.
 
-**Current status: v0.6.0 RC1 (source preview, not a stable release).** Compilation of Windows EXE and Android APK and device-level validation have not been confirmed.
+## قابلیت‌های موجود
 
-The existing v0.6.0-rc1 source package includes a .NET 8 WinForms Windows app and a Kotlin/Jetpack Compose Android app, plus GitHub Actions configuration, tests and Persian documentation. The full source package has not yet been committed to this repository.
+- **ویندوز (.NET 8 / WinForms):** نمایش سرعت و مجموع ترافیک **کارت شبکه**، نمودار، فایل‌های تاریخچهٔ روزانه JSONL، گزارش CSV، جدول TCP/IPv4 با PID، نام پردازش، IP و وضعیت اتصال، ثبت انتخابی تاریخچهٔ ارتباطات. برای دقت بیشتر در تغییر روز، تجمیع نمونه‌ها اصلاح شده و اندازهٔ حافظهٔ جدول TCP کنترل می‌شود.
+- **اندروید (Kotlin / Compose):** آمار مصرف UID برای Wi-Fi و موبایل با Usage Access، تاریخچهٔ محلی SQLite، نمایش اختلاف برداشت‌ها، جستجو، گزارش CSV، پایش دوره‌ای اختیاری WorkManager، هشدار مصرف. جلوگیری از برخورد برچسب زمان نمونه‌ها و اجرای استخراج CSV در IO بهبود داده شده است.
 
-### Known limitations
+## محدودیت‌های مهم
 
-- Windows currently measures per-network-interface traffic and lists TCP/IPv4 connections by process; it does **not** measure bytes per process.
-- Android uses OS-reported, cumulative UID network statistics; per-destination monitoring is not yet implemented.
-- Background scheduling via WorkManager is best-effort and may be delayed.
-- The repository must not be described as production-ready until builds and physical-device tests pass.
+- ویندوز **مصرف مستقل بایت هر برنامه را ثبت نمی‌کند**؛ برای این منظور موتور انتساب جریان به پردازش و حسابداری ترافیک (مانند ETW/WFP) و تست دقت لازم است.
+- آمار ویندوز شامل ترافیک LAN یا شبکه‌های مجازی انتخاب‌شده و سایر ترافیک کارت‌ها می‌شود؛ مساوی حجم مصرف اینترنت ISP نیست.
+- اندروید آمار تجمعی UID را با محدودیت‌های خود سیستم‌عامل نشان می‌دهد؛ UID اشتراکی، سرویس‌های سیستمی، VPN و تأخیر آمار می‌توانند نتیجه را تغییر دهند. ثبت مقصد ارتباطات و PCAP فعلاً وجود ندارد.
+- WorkManager اجرای دقیق هر ۱۵ دقیقه را تضمین نمی‌کند. هیچ VPN یا فایروالی فعال نشده است.
+- تاریخچهٔ برداشت‌های یک روز تجمعی است؛ جمعِ برداشت‌ها مصرف روزانه را چندبرابر می‌کند.
 
-### Planned repository layout
+## ساخت و بررسی
 
-`windows/` — .NET application  
-`android/` — Android application  
-`tests/` — source checks  
-`docs/` — release status, roadmap and test checklist  
-`.github/workflows/` — automated builds
+### ویندوز (Windows 10/11، .NET 8 SDK)
+```powershell
+cd windows/RahaNetMonitor
+dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true
+```
+### اندروید (JDK 17، Android SDK 35، Gradle 8.11.1)
+```sh
+cd android
+gradle --no-daemon lintDebug assembleDebug
+```
+### بررسی آفلاین
+```sh
+python -m unittest discover -s tests -p "test_*.py" -v
+python tests/check_release.py
+```
+CI در `.github/workflows/build.yml` برای ساخت ویندوز و APK و اجرای lint آماده شده است؛ موفقیت اجرای واقعی workflow **هنوز تأیید نشده است**.
+
+قبل از انتشار عمومی، باید build موفق هر دو سیستم، نصب و اجرای واقعی، تست مجوزها، سنجش مصرف RAM/CPU/باتری، بررسی مهاجرت دیتابیس و مقایسهٔ حجم مصرف با مرجع انجام شوند. به `docs/RELEASE_STATUS_FA.md` مراجعه کنید.
